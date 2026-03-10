@@ -1,0 +1,76 @@
+/*
+ * Copyright (c) 2020-2026 Airbyte, Inc., all rights reserved.
+ */
+
+package io.airbyte.workload.launcher.containers.stages
+
+import io.airbyte.metrics.MetricAttribute
+import io.airbyte.metrics.MetricClient
+import io.airbyte.metrics.OssMetricsRegistry
+import io.airbyte.metrics.annotations.Instrument
+import io.airbyte.metrics.annotations.Tag
+import io.airbyte.metrics.lib.MetricTags
+import io.airbyte.workload.launcher.Launcher
+import io.airbyte.workload.launcher.metrics.MeterFilterFactory
+import io.airbyte.workload.launcher.pipeline.stages.StageName
+import io.airbyte.workload.launcher.pipeline.stages.model.LaunchStage
+import io.airbyte.workload.launcher.pipeline.stages.model.LaunchStageIO
+import io.github.oshai.kotlinlogging.KotlinLogging
+import io.micronaut.context.annotation.Requires
+import io.opentelemetry.api.trace.Span
+import io.opentelemetry.instrumentation.annotations.WithSpan
+import jakarta.inject.Named
+import jakarta.inject.Singleton
+import reactor.core.publisher.Mono
+
+private val logger = KotlinLogging.logger {}
+
+/**
+ * Docker-specific check status stage.
+ * Checks if containers with a given workload id already exist.
+ * Mirrors pipeline/stages/CheckStatusStage for Kubernetes.
+ */
+@Singleton
+@Named("check")
+@Requires(env = ["docker"])
+open class CheckStatusStage(
+  private val launcher: Launcher,
+  metricClient: MetricClient,
+) : LaunchStage(metricClient) {
+  @WithSpan(MeterFilterFactory.LAUNCH_PIPELINE_STAGE_OPERATION_NAME)
+  @Instrument(
+    start = "WORKLOAD_STAGE_START",
+    end = "WORKLOAD_STAGE_DONE",
+    tags = [Tag(key = MetricTags.STAGE_NAME_TAG, value = "check_container_status")],
+  )
+  override fun apply(input: LaunchStageIO): Mono<LaunchStageIO> {
+    Span.current().setAttribute("resource.name", "CheckContainerStatusStage")
+    return super.apply(input)
+  }
+
+  override fun applyStage(input: LaunchStageIO): LaunchStageIO {
+    val workloadRunning = launcher.workloadRunning(input.msg.autoId)
+
+    if (workloadRunning) {
+      logger.info {
+        "Found containers running for workload ${input.msg.workloadId}. Setting SKIP flag."
+      }
+      metricClient.count(
+        metric = OssMetricsRegistry.WORKLOAD_ALREADY_RUNNING,
+        attributes =
+          arrayOf(
+            MetricAttribute(MetricTags.WORKLOAD_TYPE_TAG, input.msg.workloadType.toString()),
+          ),
+      )
+
+      return input.apply {
+        skip = true
+      }
+    }
+
+    logger.info { "No containers found running for workload ${input.msg.workloadId}" }
+    return input
+  }
+
+  override fun getStageName(): StageName = StageName.CHECK_STATUS
+}
