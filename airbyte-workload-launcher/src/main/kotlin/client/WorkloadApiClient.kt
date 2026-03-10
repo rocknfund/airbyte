@@ -86,6 +86,12 @@ class WorkloadApiClient(
     workloadApiClient.workloadLaunched(request)
   }
 
+  fun updateStatusToSuccess(workloadId: String) {
+    val request = io.airbyte.workload.api.domain.WorkloadSuccessRequest(workloadId)
+    logger.info { "Attempting to update workload: $workloadId to SUCCESS." }
+    workloadApiClient.workloadSuccess(request)
+  }
+
   fun claim(workloadId: String): Boolean {
     val dataplaneId = identityService.getDataplaneId()
     val dataplaneName = identityService.getDataplaneName()

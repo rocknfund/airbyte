@@ -9,7 +9,7 @@ import io.airbyte.metrics.MetricClient
 import io.airbyte.persistence.job.models.ReplicationInput
 import io.airbyte.workload.launcher.pipeline.stages.model.LaunchStageIO
 import io.airbyte.workload.launcher.pipeline.stages.model.SyncPayload
-import io.airbyte.workload.launcher.pods.KubePodClient
+import io.airbyte.workload.launcher.pods.WorkloadLauncher
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.verify
@@ -21,9 +21,9 @@ class EnforceMutexStageTest {
     val payload = SyncPayload(ReplicationInput())
     val mutexKey = "a unique key"
 
-    val launcher: KubePodClient = mockk()
+    val launcher: WorkloadLauncher = mockk()
     val metricClient: MetricClient = mockk()
-    every { launcher.deleteMutexPods(any()) } returns false
+    every { launcher.deleteMutexWorkload(any()) } returns false
 
     val stage = EnforceMutexStage(launcher, metricClient)
     val io =
@@ -32,7 +32,7 @@ class EnforceMutexStageTest {
     val result = stage.applyStage(io)
 
     verify {
-      launcher.deleteMutexPods(mutexKey)
+      launcher.deleteMutexWorkload(mutexKey)
     }
 
     assert(result.payload == payload)
@@ -42,9 +42,9 @@ class EnforceMutexStageTest {
   fun `noops if mutex key not present`() {
     val payload = SyncPayload(ReplicationInput())
 
-    val launcher: KubePodClient = mockk()
+    val launcher: WorkloadLauncher = mockk()
     val metricClient: MetricClient = mockk()
-    every { launcher.deleteMutexPods(any()) } returns false
+    every { launcher.deleteMutexWorkload(any()) } returns false
 
     val stage = EnforceMutexStage(launcher, metricClient)
     val io =
@@ -53,7 +53,7 @@ class EnforceMutexStageTest {
     val result = stage.applyStage(io)
 
     verify(exactly = 0) {
-      launcher.deleteMutexPods(any())
+      launcher.deleteMutexWorkload(any())
     }
 
     assert(result.payload == payload)

@@ -31,6 +31,7 @@ import io.fabric8.kubernetes.api.model.EnvVar
 import io.fabric8.kubernetes.api.model.EnvVarSource
 import io.fabric8.kubernetes.api.model.SecretKeySelector
 import io.micronaut.context.annotation.Factory
+import io.micronaut.context.annotation.Requires
 import io.micronaut.context.annotation.Value
 import io.micronaut.context.env.Environment
 import jakarta.inject.Named
@@ -46,6 +47,7 @@ private const val WORKLOAD_API_PREFIX = "airbyte.workload-api"
  * For dynamic configuration, see RuntimeEnvVarFactory.
  */
 @Factory
+@Requires(notEnv = ["docker"])
 class EnvVarConfigBeanFactory {
   /**
    * The list of env vars to be passed to the init container.

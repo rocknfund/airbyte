@@ -22,10 +22,12 @@ import io.fabric8.kubernetes.api.model.EnvVar
 import io.fabric8.kubernetes.api.model.LocalObjectReference
 import io.fabric8.kubernetes.api.model.Toleration
 import io.micronaut.context.annotation.Factory
+import io.micronaut.context.annotation.Requires
 import jakarta.inject.Named
 import jakarta.inject.Singleton
 
 @Factory
+@Requires(notEnv = ["docker"])
 class PodFactoryBeanFactory {
   @Singleton
   @Named("checkPodFactory")

@@ -13,8 +13,9 @@ import io.airbyte.metrics.lib.MetricTags
 import io.airbyte.workload.launcher.metrics.MeterFilterFactory
 import io.airbyte.workload.launcher.pipeline.stages.model.LaunchStage
 import io.airbyte.workload.launcher.pipeline.stages.model.LaunchStageIO
-import io.airbyte.workload.launcher.pods.KubePodClient
+import io.airbyte.workload.launcher.Launcher
 import io.github.oshai.kotlinlogging.KotlinLogging
+import io.micronaut.context.annotation.Requires
 import io.opentelemetry.api.trace.Span
 import io.opentelemetry.instrumentation.annotations.WithSpan
 import jakarta.inject.Named
@@ -24,13 +25,14 @@ import reactor.core.publisher.Mono
 private val logger = KotlinLogging.logger {}
 
 /**
- * Checks if pods with a given workload id already exist. If they do, we don't
+ * Checks if workloads with a given auto id already exist. If they do, we don't
  * need to do anything, so we no-op and skip to the end of the pipeline.
  */
 @Singleton
 @Named("check")
+@Requires(notEnv = ["docker"])
 open class CheckStatusStage(
-  private val podClient: KubePodClient,
+  private val launcher: Launcher,
   metricClient: MetricClient,
 ) : LaunchStage(metricClient) {
   @WithSpan(MeterFilterFactory.LAUNCH_PIPELINE_STAGE_OPERATION_NAME)
@@ -45,9 +47,9 @@ open class CheckStatusStage(
   }
 
   override fun applyStage(input: LaunchStageIO): LaunchStageIO {
-    val podExists = podClient.podsExistForAutoId(input.msg.autoId)
+    val workloadRunning = launcher.workloadRunning(input.msg.autoId)
 
-    if (podExists) {
+    if (workloadRunning) {
       logger.info {
         "Found pods running for workload ${input.msg.workloadId}. Setting status to RUNNING and SKIP flag to true."
       }

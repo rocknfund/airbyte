@@ -15,7 +15,8 @@ import io.airbyte.workload.launcher.pipeline.stages.model.LaunchStage
 import io.airbyte.workload.launcher.pipeline.stages.model.LaunchStageIO
 import io.airbyte.workload.launcher.pipeline.stages.model.SpecPayload
 import io.airbyte.workload.launcher.pipeline.stages.model.SyncPayload
-import io.airbyte.workload.launcher.pods.KubePodClient
+import io.airbyte.workload.launcher.Launcher
+import io.micronaut.context.annotation.Requires
 import io.opentelemetry.api.trace.Span
 import io.opentelemetry.instrumentation.annotations.WithSpan
 import jakarta.inject.Named
@@ -28,8 +29,9 @@ import reactor.core.publisher.Mono
  */
 @Singleton
 @Named("launch")
+@Requires(notEnv = ["docker"])
 open class LaunchPodStage(
-  private val launcher: KubePodClient,
+  private val launcher: Launcher,
   metricClient: MetricClient,
 ) : LaunchStage(metricClient) {
   @WithSpan(MeterFilterFactory.LAUNCH_PIPELINE_STAGE_OPERATION_NAME)

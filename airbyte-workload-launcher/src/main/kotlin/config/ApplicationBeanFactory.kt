@@ -11,6 +11,7 @@ import io.airbyte.metrics.OssMetricsRegistry
 import io.airbyte.micronaut.runtime.AirbyteKubernetesConfig
 import io.fabric8.kubernetes.client.KubernetesClientTimeoutException
 import io.micronaut.context.annotation.Factory
+import io.micronaut.context.annotation.Requires
 import jakarta.inject.Named
 import jakarta.inject.Singleton
 import okhttp3.internal.http2.StreamResetException
@@ -20,11 +21,30 @@ import java.time.Duration
 import kotlin.time.Duration.Companion.seconds
 import kotlin.time.toJavaDuration
 
+import io.airbyte.commons.storage.StorageClient
+import io.airbyte.commons.storage.DocumentType
+import java.util.stream.Stream
+
 /**
  * Micronaut bean factory for general application beans.
  */
 @Factory
+@Requires(notEnv = ["docker"])
 class ApplicationBeanFactory {
+
+  @Singleton
+  @Named("outputDocumentStore")
+  fun dummyOutputDocumentStore(): StorageClient {
+    return object : StorageClient {
+      override val documentType: DocumentType = DocumentType.WORKLOAD_OUTPUT
+      override val storageType: io.airbyte.micronaut.runtime.StorageType = io.airbyte.micronaut.runtime.StorageType.LOCAL
+      override val bucketName: String = "dummy-bucket"
+      override fun write(id: String, content: String) {}
+      override fun read(id: String): String? = null
+      override fun delete(id: String): Boolean = true
+      override fun list(id: String): List<String> = emptyList()
+    }
+  }
   @Singleton
   @Named("kubeHttpErrorRetryPredicate")
   fun kubeHttpErrorRetryPredicate(): (Throwable) -> Boolean =

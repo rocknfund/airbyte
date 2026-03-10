@@ -13,11 +13,13 @@ import io.airbyte.workload.launcher.model.toRefEnvVarList
 import io.fabric8.kubernetes.api.model.EnvVar
 import io.fabric8.kubernetes.api.model.EnvVarSource
 import io.micronaut.context.annotation.Factory
+import io.micronaut.context.annotation.Requires
 import jakarta.inject.Named
 import jakarta.inject.Singleton
 import io.airbyte.commons.envvar.EnvVar as AbEnvVar
 
 @Factory
+@Requires(notEnv = ["docker"])
 class OrchestratorEnvVarFactory(
   private val storageEnvironmentVariableProvider: StorageEnvironmentVariableProvider,
   @Named("workloadApiEnvMap") private val workloadApiEnvMap: Map<String, String>,

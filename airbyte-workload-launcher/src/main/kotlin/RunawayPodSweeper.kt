@@ -20,6 +20,7 @@ import io.airbyte.workload.launcher.model.DataplaneConfig
 import io.airbyte.workload.launcher.pods.AUTO_ID
 import io.fabric8.kubernetes.api.model.Pod
 import io.github.oshai.kotlinlogging.KotlinLogging
+import io.micronaut.context.annotation.Requires
 import io.micronaut.context.event.ApplicationEventListener
 import io.micronaut.scheduling.annotation.Scheduled
 import jakarta.inject.Singleton
@@ -32,6 +33,7 @@ private val logger = KotlinLogging.logger {}
 
 // this is open to support @Instrument AOP
 @Singleton
+@Requires(property = "worker.environment", value = "kubernetes", defaultValue = "kubernetes")
 open class RunawayPodSweeper(
   private val workloadApi: WorkloadApiClient,
   private val k8sWrapper: KubernetesClientWrapper,

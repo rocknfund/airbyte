@@ -15,7 +15,7 @@ import io.airbyte.workload.launcher.pipeline.stages.model.CheckPayload
 import io.airbyte.workload.launcher.pipeline.stages.model.DiscoverCatalogPayload
 import io.airbyte.workload.launcher.pipeline.stages.model.LaunchStageIO
 import io.airbyte.workload.launcher.pipeline.stages.model.SyncPayload
-import io.airbyte.workload.launcher.pods.KubePodClient
+import io.airbyte.workload.launcher.pods.WorkloadLauncher
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.verify
@@ -28,7 +28,7 @@ class LaunchPodStageTest {
     val replInput = ReplicationInput()
     val payload = SyncPayload(replInput)
 
-    val launcher: KubePodClient = mockk()
+    val launcher: WorkloadLauncher = mockk()
     every { launcher.launchReplication(any(), any()) } returns Unit
 
     val stage = LaunchPodStage(launcher, mockk())
@@ -50,7 +50,7 @@ class LaunchPodStageTest {
     val replInput = ReplicationInput().withIsReset(true)
     val payload = SyncPayload(replInput)
 
-    val launcher: KubePodClient = mockk()
+    val launcher: WorkloadLauncher = mockk()
     every { launcher.launchReset(any(), any()) } returns Unit
 
     val stage = LaunchPodStage(launcher, mockk())
@@ -79,7 +79,7 @@ class LaunchPodStageTest {
       )
     val payload = CheckPayload(checkInput)
 
-    val launcher: KubePodClient = mockk()
+    val launcher: WorkloadLauncher = mockk()
     every { launcher.launchCheck(any(), any()) } returns Unit
 
     val stage = LaunchPodStage(launcher, mockk())
@@ -106,7 +106,7 @@ class LaunchPodStageTest {
       )
     val payload = DiscoverCatalogPayload(discoverInput)
 
-    val launcher: KubePodClient = mockk()
+    val launcher: WorkloadLauncher = mockk()
     every { launcher.launchDiscover(any(), any()) } returns Unit
 
     val stage = LaunchPodStage(launcher, mockk())

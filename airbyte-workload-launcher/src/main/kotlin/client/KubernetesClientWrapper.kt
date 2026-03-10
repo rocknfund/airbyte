@@ -15,6 +15,7 @@ import io.fabric8.kubernetes.client.KubernetesClient
 import io.fabric8.kubernetes.client.dsl.FilterWatchListDeletable
 import io.fabric8.kubernetes.client.dsl.PodResource
 import io.github.oshai.kotlinlogging.KotlinLogging
+import io.micronaut.context.annotation.Requires
 import jakarta.inject.Named
 import jakarta.inject.Singleton
 import java.util.concurrent.TimeUnit
@@ -26,6 +27,7 @@ private const val DELETE_TIMEOUT_MINUTES = 1L
 typealias PodFluentFilter = FilterWatchListDeletable<Pod, PodList, PodResource>
 
 @Singleton
+@Requires(notEnv = ["docker"])
 class KubernetesClientWrapper(
   val kubernetesClient: KubernetesClient,
   @Named("kubernetesClientRetryPolicy") private val kubernetesClientRetryPolicy: RetryPolicy<Any>,

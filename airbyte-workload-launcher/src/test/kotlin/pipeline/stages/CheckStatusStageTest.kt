@@ -8,7 +8,7 @@ import fixtures.RecordFixtures
 import io.airbyte.config.WorkloadType
 import io.airbyte.metrics.MetricClient
 import io.airbyte.workload.launcher.pipeline.stages.model.LaunchStageIO
-import io.airbyte.workload.launcher.pods.KubePodClient
+import io.airbyte.workload.launcher.pods.WorkloadLauncher
 import io.mockk.every
 import io.mockk.mockk
 import org.junit.jupiter.api.Test
@@ -21,11 +21,11 @@ class CheckStatusStageTest {
     val workloadId = "1"
     val autoId = UUID.randomUUID()
 
-    val kubernetesClient: KubePodClient = mockk()
+    val kubernetesClient: WorkloadLauncher = mockk()
     val metricClient: MetricClient = mockk(relaxed = true)
 
     every {
-      kubernetesClient.podsExistForAutoId(autoId)
+      kubernetesClient.workloadRunning(autoId)
     } returns true
 
     val checkStatusStage = CheckStatusStage(kubernetesClient, metricClient)
@@ -42,11 +42,11 @@ class CheckStatusStageTest {
     val workloadId = "1"
     val autoId = UUID.randomUUID()
 
-    val kubernetesClient: KubePodClient = mockk()
+    val kubernetesClient: WorkloadLauncher = mockk()
     val metricClient: MetricClient = mockk(relaxed = true)
 
     every {
-      kubernetesClient.podsExistForAutoId(autoId)
+      kubernetesClient.workloadRunning(autoId)
     } returns true
 
     val checkStatusStage = CheckStatusStage(kubernetesClient, metricClient)
@@ -72,11 +72,11 @@ class CheckStatusStageTest {
     val workloadId = "1"
     val autoId = UUID.randomUUID()
 
-    val kubernetesClient: KubePodClient = mockk()
+    val kubernetesClient: WorkloadLauncher = mockk()
     val metricClient: MetricClient = mockk(relaxed = true)
 
     every {
-      kubernetesClient.podsExistForAutoId(autoId)
+      kubernetesClient.workloadRunning(autoId)
     } returns false
 
     val checkStatusStage = CheckStatusStage(kubernetesClient, metricClient)
@@ -93,11 +93,11 @@ class CheckStatusStageTest {
     val workloadId = "1"
     val autoId = UUID.randomUUID()
 
-    val kubernetesClient: KubePodClient = mockk()
+    val kubernetesClient: WorkloadLauncher = mockk()
     val metricClient: MetricClient = mockk(relaxed = true)
 
     every {
-      kubernetesClient.podsExistForAutoId(autoId)
+      kubernetesClient.workloadRunning(autoId)
     } throws Exception("Bang!")
 
     val checkStatusStage = CheckStatusStage(kubernetesClient, metricClient)

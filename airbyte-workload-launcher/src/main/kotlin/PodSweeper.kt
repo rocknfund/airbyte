@@ -19,6 +19,7 @@ import io.airbyte.workload.launcher.pods.KubePodLauncher.Constants.KUBECTL_RUNNI
 import io.fabric8.kubernetes.api.model.Pod
 import io.fabric8.kubernetes.api.model.PodList
 import io.github.oshai.kotlinlogging.KotlinLogging
+import io.micronaut.context.annotation.Requires
 import io.micronaut.scheduling.annotation.Scheduled
 import jakarta.inject.Singleton
 import java.time.Clock
@@ -39,6 +40,7 @@ private val logger = KotlinLogging.logger {}
  * @param airbytePodSweeperConfig The [AirbytePodSweeperConfig] that contains the TTLs for sweeping
  */
 @Singleton
+@Requires(property = "worker.environment", value = "kubernetes", defaultValue = "kubernetes")
 open class PodSweeper(
   private val k8sWrapper: KubernetesClientWrapper,
   private val metricClient: MetricClient,

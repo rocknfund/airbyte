@@ -29,6 +29,7 @@ import io.fabric8.kubernetes.api.model.Pod
 import io.fabric8.kubernetes.api.model.PodList
 import io.fabric8.kubernetes.api.model.StatusDetails
 import io.fabric8.kubernetes.client.KubernetesClient
+import io.micronaut.context.annotation.Requires
 import io.fabric8.kubernetes.client.dsl.FilterWatchListDeletable
 import io.fabric8.kubernetes.client.dsl.PodResource
 import io.fabric8.kubernetes.client.readiness.Readiness
@@ -47,6 +48,7 @@ private val logger = KotlinLogging.logger {}
  * Atomic operations on the raw Kube api. Domain level information should be opaque to this layer.
  */
 @Singleton
+@Requires(notEnv = ["docker"])
 class KubePodLauncher(
   private val kubernetesClient: KubernetesClient,
   private val metricClient: MetricClient,

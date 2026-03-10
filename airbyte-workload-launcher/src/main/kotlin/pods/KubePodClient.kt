@@ -31,6 +31,8 @@ import io.fabric8.kubernetes.api.model.Pod
 import io.fabric8.kubernetes.client.KubernetesClientTimeoutException
 import io.github.oshai.kotlinlogging.KotlinLogging
 import io.opentelemetry.instrumentation.annotations.WithSpan
+import io.airbyte.workload.launcher.Launcher
+import io.micronaut.context.annotation.Requires
 import jakarta.inject.Named
 import jakarta.inject.Singleton
 import java.time.Duration
@@ -44,6 +46,7 @@ private val logger = KotlinLogging.logger {}
  * Composes raw Kube layer atomic operations to perform business operations.
  */
 @Singleton
+@Requires(notEnv = ["docker"])
 class KubePodClient(
   private val kubePodLauncher: KubePodLauncher,
   private val labeler: PodLabeler,
@@ -53,11 +56,11 @@ class KubePodClient(
   @Named("checkPodFactory") private val checkPodFactory: ConnectorPodFactory,
   @Named("discoverPodFactory") private val discoverPodFactory: ConnectorPodFactory,
   @Named("specPodFactory") private val specPodFactory: ConnectorPodFactory,
-) {
-  fun podsExistForAutoId(autoId: UUID): Boolean = kubePodLauncher.podsRunning(labeler.getAutoIdLabels(autoId))
+) : Launcher {
+  override fun workloadRunning(autoId: UUID): Boolean = kubePodLauncher.podsRunning(labeler.getAutoIdLabels(autoId))
 
   @WithSpan(LAUNCH_REPLICATION_OPERATION_NAME)
-  fun launchReplication(
+  override fun launchReplication(
     payload: SyncPayload,
     launcherInput: LauncherInput,
   ) {
@@ -127,7 +130,7 @@ class KubePodClient(
   }
 
   @WithSpan(LAUNCH_RESET_OPERATION_NAME)
-  fun launchReset(
+  override fun launchReset(
     payload: SyncPayload,
     launcherInput: LauncherInput,
   ) {
@@ -188,7 +191,7 @@ class KubePodClient(
     }
   }
 
-  fun launchCheck(
+  override fun launchCheck(
     checkInput: CheckConnectionInput,
     launcherInput: LauncherInput,
   ) {
@@ -207,7 +210,7 @@ class KubePodClient(
     launchConnectorWithSidecar(kubeInput, checkPodFactory, launcherInput.workloadType.toOperationName())
   }
 
-  fun launchDiscover(
+  override fun launchDiscover(
     discoverCatalogInput: DiscoverCatalogInput,
     launcherInput: LauncherInput,
   ) {
@@ -227,7 +230,7 @@ class KubePodClient(
     launchConnectorWithSidecar(kubeInput, discoverPodFactory, launcherInput.workloadType.toOperationName())
   }
 
-  fun launchSpec(
+  override fun launchSpec(
     specInput: SpecInput,
     launcherInput: LauncherInput,
   ) {
@@ -280,7 +283,7 @@ class KubePodClient(
     waitForMainContainersReady(pod)
   }
 
-  fun deleteMutexPods(mutexKey: String): Boolean {
+  override fun deleteMutexWorkload(mutexKey: String): Boolean {
     val labels = labeler.getMutexLabels(mutexKey)
 
     try {

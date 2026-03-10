@@ -13,8 +13,9 @@ import io.airbyte.metrics.lib.MetricTags
 import io.airbyte.workload.launcher.metrics.MeterFilterFactory
 import io.airbyte.workload.launcher.pipeline.stages.model.LaunchStage
 import io.airbyte.workload.launcher.pipeline.stages.model.LaunchStageIO
-import io.airbyte.workload.launcher.pods.KubePodClient
+import io.airbyte.workload.launcher.Launcher
 import io.github.oshai.kotlinlogging.KotlinLogging
+import io.micronaut.context.annotation.Requires
 import io.opentelemetry.api.trace.Span
 import io.opentelemetry.instrumentation.annotations.WithSpan
 import jakarta.inject.Named
@@ -30,8 +31,9 @@ private val logger = KotlinLogging.logger {}
  */
 @Singleton
 @Named("mutex")
+@Requires(notEnv = ["docker"])
 open class EnforceMutexStage(
-  private val launcher: KubePodClient,
+  private val launcher: Launcher,
   metricClient: MetricClient,
 ) : LaunchStage(metricClient) {
   @WithSpan(MeterFilterFactory.LAUNCH_PIPELINE_STAGE_OPERATION_NAME)
@@ -54,9 +56,9 @@ open class EnforceMutexStage(
       return input
     }
 
-    logger.info { "Mutex key: $key specified for workload: $workloadId. Attempting to delete existing pods..." }
+    logger.info { "Mutex key: $key specified for workload: $workloadId. Attempting to delete existing workloads..." }
 
-    val deleted = launcher.deleteMutexPods(key)
+    val deleted = launcher.deleteMutexWorkload(key)
     if (deleted) {
       logger.info { "Existing pods for mutex key: $key deleted." }
       metricClient.count(
