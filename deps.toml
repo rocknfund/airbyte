@@ -5,7 +5,7 @@ azure-kevault-secrets = "4.3.5"
 azure-identity = "1.3.5"
 azure-storage = "12.27.1"
 bouncycastle = "1.79"
-docker-java = "3.2.8"
+docker-java = "3.4.0"
 fasterxml_version = "2.19.2"
 failsafe = "3.3.2"
 flyway = "10.22.0"
@@ -16,8 +16,8 @@ jna = "5.18.1"
 jmh = "1.37"
 jooq = "3.19.18"
 junit-jupiter = "6.0.1"
-keycloak-client = "26.2.2" # should be kept in sync with airbyte-keycloak/Dockerfile base image version
-keycloak-admin-client = "26.0.5" # should be kept in sync with airbyte-keycloak/Dockerfile base image version
+keycloak-client = "26.2.2"         # should be kept in sync with airbyte-keycloak/Dockerfile base image version
+keycloak-admin-client = "26.0.5"   # should be kept in sync with airbyte-keycloak/Dockerfile base image version
 kotest = "5.9.1"
 kotlin-logging = "7.0.6"
 kotlinx-coroutine = "1.10.2"
@@ -59,7 +59,7 @@ v3-swagger = "2.2.21"
 [libraries]
 airbyte-protocol = { module = "io.airbyte.airbyte-protocol:protocol-models", version.ref = "airbyte-protocol" }
 apache-commons-codec = { module = "commons-codec:commons-codec", version = "1.19.0" }
-apache-mime4j-core = { module = "org.apache.james:apache-mime4j-core", version = "0.8.12" } # Transitive dependency of keycloak. Forced upgrade to 0.8.10 from 0.8.9. Also patches commons-io GHSA-78wr-2p64-hpwj
+apache-mime4j-core = { module = "org.apache.james:apache-mime4j-core", version = "0.8.12" }                                              # Transitive dependency of keycloak. Forced upgrade to 0.8.10 from 0.8.9. Also patches commons-io GHSA-78wr-2p64-hpwj
 apollo-runtime = { module = "com.apollographql.apollo3:apollo-runtime", version.ref = "apollo" }
 apollo-api-jvm = { module = "com.apollographql.apollo3:apollo-api-jvm", version.ref = "apollo" }
 apollo-adapters-jvm = { module = "com.apollographql.apollo3:apollo-adapters-jvm", version.ref = "apollo" }
@@ -76,7 +76,8 @@ byte-buddy = { module = "net.bytebuddy:byte-buddy", version = "1.14.10" }
 cron-utils = { module = "com.cronutils:cron-utils", version = "9.2.1" }
 datadog-statsd-client = { module = "com.datadoghq:java-dogstatsd-client", version = "4.0.0" }
 docker-java = { module = "com.github.docker-java:docker-java", version.ref = "docker-java" }
-docker-java-transport-httpclient5 = { module = "com.github.docker-java:docker-java-transport-httpclient5", version.ref = "docker.java" }
+docker-java-transport-zerodep = { module = "com.github.docker-java:docker-java-transport-zerodep", version.ref = "docker-java" }
+docker-java-transport-httpclient5 = { module = "com.github.docker-java:docker-java-transport-httpclient5", version.ref = "docker-java" }
 elasticsearch = { module = "org.elasticsearch:elasticsearch", version = "7.17.21" }
 fasterxml = { module = "com.fasterxml.jackson:jackson-bom", version.ref = "fasterxml_version" }
 failsafe = { module = "dev.failsafe:failsafe", version.ref = "failsafe" }
@@ -205,7 +206,7 @@ temporal-sdk = { module = "io.temporal:temporal-sdk", version.ref = "temporal" }
 temporal-opentracing = { module = "io.temporal:temporal-opentracing", version.ref = "temporal" }
 temporal-serviceclient = { module = "io.temporal:temporal-serviceclient", version.ref = "temporal" }
 temporal-testing = { module = "io.temporal:temporal-testing", version.ref = "temporal" }
-testcontainers-vault = { module = "org.testcontainers:vault",  version = "1.18.3" }
+testcontainers-vault = { module = "org.testcontainers:vault", version = "1.18.3" }
 vault-java-driver = { module = "com.bettercloud:vault-java-driver", version = "5.1.0" }
 network-json-validator = { module = "com.networknt:json-schema-validator", version = "1.5.2" }
 victools-json-schema-generator = { module = "com.github.victools:jsonschema-generator", version = "4.36.0" }
@@ -261,9 +262,9 @@ micronaut-tracing-opentelemetry-http = { module = "io.micronaut.tracing:micronau
 micronaut-validation = { module = "io.micronaut.validation:micronaut-validation", version = "4.12.0" }
 
 # Transitive security patches direct dependency does not have a fix
-json-smart = { module = "net.minidev:json-smart", version = "2.5.2" } # Comes from com.jayway.jsonpath:json-path:2.9.0 (latest version). Force upgrade from 2.5.1 to 2.5.2 to deal with CVE-2024-57699
-netty-handler = { module = "io.netty:netty-handler", version = "4.2.7.Final" } # Comes from micronout. Force upgrade from 4.1.116.Final to 4.2.7.Final to deal with CVE-2025-24970
-netty-common = { module = "io.netty:netty-common", version = "4.2.7.Final" } # Comes from micronout. Force upgrade from 4.1.116.Final to 4.2.7.Final to deal with CVE-2025-24970
+json-smart = { module = "net.minidev:json-smart", version = "2.5.2" }                       # Comes from com.jayway.jsonpath:json-path:2.9.0 (latest version). Force upgrade from 2.5.1 to 2.5.2 to deal with CVE-2024-57699
+netty-handler = { module = "io.netty:netty-handler", version = "4.2.7.Final" }              # Comes from micronout. Force upgrade from 4.1.116.Final to 4.2.7.Final to deal with CVE-2025-24970
+netty-common = { module = "io.netty:netty-common", version = "4.2.7.Final" }                # Comes from micronout. Force upgrade from 4.1.116.Final to 4.2.7.Final to deal with CVE-2025-24970
 httpclient5 = { module = "org.apache.httpcomponents.client5:httpclient5", version = "5.5" } # Comes from micronout. Force upgrade from 5.4.1 to 5.5 to deal with CVE-2025-27820
 
 [bundles]
@@ -276,19 +277,19 @@ kotest = ["kotest-assertions"]
 kubernetes-client = ["kubernetes-client-api", "kubernetes-client", "kubernetes-httpclient-okhttp"]
 logback = ["logback-classic", "logback-core"]
 micronaut = [
-    "jakarta-annotation-api", "jakarta-transaction-api",
-    "micronaut-http-server-netty", "micronaut-http-client",
-    "micronaut-inject", "micronaut-validation", "micronaut-runtime",
-    "micronaut-management", "micronaut-flyway", "micronaut-jdbc-hikari",
-    "micronaut-jooq", "micronaut-jackson-databind", "netty-handler",
-    "netty-common", "httpclient5", "micronaut-tracing-opentelemetry-http", "otel-annotations"]
+"jakarta-annotation-api", "jakarta-transaction-api",
+"micronaut-http-server-netty", "micronaut-http-client",
+"micronaut-inject", "micronaut-validation", "micronaut-runtime",
+"micronaut-management", "micronaut-flyway", "micronaut-jdbc-hikari",
+"micronaut-jooq", "micronaut-jackson-databind", "netty-handler",
+"netty-common", "httpclient5", "micronaut-tracing-opentelemetry-http", "otel-annotations"]
 micronaut-light = ["jakarta-annotation-api", "micronaut-inject-java", "micronaut-runtime"]
 micronaut-annotation = ["jakarta-annotation-api", "micronaut-inject-java", "micronaut-inject-kotlin"]
 micronaut-annotation-processor = ["micronaut-inject-java", "micronaut-inject-kotlin", "micronaut-management", "micronaut-validation", "micronaut-data-processor", "micronaut-jaxrs-processor", "micronaut-http-validation"]
 micronaut-cache = ["micronaut-cache-caffeine", "micronaut-cache-management"]
 micronaut-data-jdbc = [ "micronaut-data-connection", "micronaut-data-jdbc", "micronaut-data-model", "micronaut-data-tx", "jakarta-persistence-api", "micronaut-jdbc-hikari"]
 micronaut-email = ["micronaut-email", "micronaut-email-sendgrid"]
-micronaut-jaxrs =  ["micronaut-jaxrs-common", "micronaut-jaxrs-server"]
+micronaut-jaxrs = ["micronaut-jaxrs-common", "micronaut-jaxrs-server"]
 micronaut-kotlin = ["micronaut-kotlin-extension-functions", "micronaut-kotlin-runtime"]
 micronaut-metrics = ["micronaut-management", "micronaut-micrometer-core", "micronaut-micrometer-registry-otlp", "micronaut-micrometer-registry-statsd"]
 micronaut-test = ["micronaut-test-core", "micronaut-test-junit5", "h2-database"]
