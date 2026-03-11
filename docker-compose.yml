@@ -1,0 +1,214 @@
+services:
+
+  db:
+    image: airbyte/db:1.7.0-17
+    container_name: airbyte-db
+    environment:
+      - POSTGRES_DB=db-airbyte
+      - POSTGRES_PASSWORD=${DATABASE_PASSWORD}
+      - POSTGRES_USER=${DATABASE_USER}
+    mem_limit: 1g
+    volumes:
+      - airbyte_db:/var/lib/postgresql/data
+    ports:
+      - "5433:5432"
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U docker -d db-airbyte" ]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  bootloader:
+    image: airbyte/bootloader:2.0.1
+    container_name: airbyte-bootloader
+    env_file: .env
+    environment:
+      - AIRBYTE_BOOTLOADER_DATAPLANE_UUID=c4391d1d-d87f-49bd-9820-62df281b04ef
+      - AIRBYTE_BOOTLOADER_CONTROL_PLANE_UUID=00000000-0000-0000-0000-000000000000
+      - KUBERNETES_SERVICE_HOST=airbyte-bootloader-k8s
+      - KUBERNETES_SERVICE_PORT=8080
+      - AB_AUTH_SECRET_CREATION_ENABLED=true
+    command: airbyte-app/bin/airbyte-bootloader
+    restart: on-failure
+    depends_on:
+      db:
+        condition: service_healthy
+      airbyte-bootloader-k8s:
+        condition: service_healthy
+
+  temporal:
+    image: temporalio/auto-setup:1.27.2
+    container_name: airbyte-temporal
+    environment:
+      - DB=postgres12
+      - DB_PORT=5432
+      - POSTGRES_USER=${DATABASE_USER}
+      - POSTGRES_PWD=${DATABASE_PASSWORD}
+      - POSTGRES_SEEDS=db
+    depends_on:
+      db:
+        condition: service_healthy
+    restart: on-failure
+    mem_limit: 512m
+
+  server:
+    image: airbyte/server:2.0.1
+    container_name: airbyte-server
+    env_file: .env
+    environment:
+      - AIRBYTE_SERVER_DATAPLANE_UUID=c4391d1d-d87f-49bd-9820-62df281b04ef
+      - AIRBYTE_SERVER_CONTROL_PLANE_UUID=00000000-0000-0000-0000-000000000000
+      - KUBERNETES_SERVICE_HOST=airbyte-bootloader-k8s
+      - KUBERNETES_SERVICE_PORT=8080
+      - WEBAPP_URL=http://server:8001
+      - AIRBYTE_URL=http://localhost:8000
+      - CONNECTOR_BUILDER_API_HOST=http://connector-builder-server:8080
+      - MANIFEST_SERVER_API_HOST=http://connector-builder-server:8080
+      - ENTERPRISE_SOURCE_STUBS_URL=https://connectors.airbyte.com/files/resources/connector_stubs/v1/connector_stubs.json
+    ports:
+      - "8000:8001"
+      - "8001:8001"
+    depends_on:
+      db:
+        condition: service_healthy
+      temporal:
+        condition: service_started
+    restart: on-failure
+    mem_limit: 1g
+    volumes:
+      - airbyte_workspace:/workspace
+      - airbyte_data:/tmp/airbyte_local
+      - airbyte_storage:/storage
+
+  worker:
+    image: airbyte/worker:2.0.1
+    container_name: airbyte-worker
+    env_file: .env
+    environment:
+      - AIRBYTE_WORKER_DATAPLANE_UUID=c4391d1d-d87f-49bd-9820-62df281b04ef
+      - AIRBYTE_WORKER_CONTROL_PLANE_UUID=00000000-0000-0000-0000-000000000000
+      - KUBERNETES_SERVICE_HOST=airbyte-bootloader-k8s
+      - KUBERNETES_SERVICE_PORT=8080
+    depends_on:
+      server:
+        condition: service_started
+    mem_limit: 1g
+    volumes:
+      - airbyte_workspace:/workspace
+      - airbyte_data:/tmp/airbyte_local
+      - airbyte_storage:/storage
+
+  cron:
+    image: airbyte/cron:2.0.1
+    container_name: airbyte-cron
+    env_file: .env
+    environment:
+      - AIRBYTE_CRON_DATAPLANE_UUID=c4391d1d-d87f-49bd-9820-62df281b04ef
+      - AIRBYTE_CRON_CONTROL_PLANE_UUID=00000000-0000-0000-0000-000000000000
+      - KUBERNETES_SERVICE_HOST=airbyte-bootloader-k8s
+      - KUBERNETES_SERVICE_PORT=8080
+      - UPDATE_DEFINITIONS_CRON_ENABLED=true
+    depends_on:
+      temporal:
+        condition: service_started
+      server:
+        condition: service_started
+    restart: on-failure
+    mem_limit: 512m
+    volumes:
+      - airbyte_workspace:/workspace
+      - airbyte_data:/tmp/airbyte_local
+      - airbyte_storage:/storage
+
+  workload-api-server:
+    image: airbyte/workload-api-server:2.0.1
+    container_name: airbyte-workload-api-server
+    env_file: .env
+    environment:
+      - AIRBYTE_WORKLOAD_API_SERVER_DATAPLANE_UUID=c4391d1d-d87f-49bd-9820-62df281b04ef
+      - AIRBYTE_WORKLOAD_API_SERVER_CONTROL_PLANE_UUID=00000000-0000-0000-0000-000000000000
+      - KUBERNETES_SERVICE_HOST=airbyte-bootloader-k8s
+      - KUBERNETES_SERVICE_PORT=8080
+      - WORKLOAD_API_SERVER_ENABLED=true
+    depends_on:
+      - db
+    mem_limit: 512m
+    ports:
+      - "8002:8007"
+    volumes:
+      - airbyte_workspace:/workspace
+      - airbyte_data:/tmp/airbyte_local
+      - airbyte_storage:/storage
+
+  workload-launcher:
+    image: rocknfund/airbyte-workload-launcher:latest
+    container_name: airbyte-workload-launcher
+    env_file: .env
+    environment:
+      - KUBERNETES_SERVICE_HOST=airbyte-bootloader-k8s
+      - KUBERNETES_SERVICE_PORT=8080
+      - WORKER_ENVIRONMENT=docker
+      - WORKLOAD_LAUNCHER_ENABLED=true
+      - AIRBYTE_WORKLOAD_LAUNCHER_TYPE=DOCKER
+      - DOCKER_HOST=unix:///var/run/docker.sock
+      - AIRBYTE_WORKLOAD_LAUNCHER_DOCKER_HOST=unix:///var/run/docker.sock
+      - AIRBYTE_WORKLOAD_LAUNCHER_DOCKER_NETWORK=airbyte_default
+      - AIRBYTE_WORKLOAD_LAUNCHER_DOCKER_MAX_CONCURRENT_SYNCS=4
+      - AIRBYTE_WORKLOAD_LAUNCHER_DOCKER_LOCAL_MOUNT=airbyte_airbyte_data
+      - AIRBYTE_WORKLOAD_LAUNCHER_DOCKER_WORKSPACE_MOUNT=airbyte_airbyte_workspace
+    depends_on:
+      workload-api-server:
+        condition: service_started
+      server:
+        condition: service_started
+    user: "1000:1000"
+    group_add:
+      - "0"
+    restart: on-failure
+    mem_limit: 1g
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - airbyte_workspace:/workspace
+      - airbyte_data:/tmp/airbyte_local
+      - airbyte_storage:/storage
+      - /tmp:/tmp
+
+  connector-builder-server:
+    image: airbyte/connector-builder-server:2.0.1
+    container_name: airbyte-connector-builder-server
+    env_file: .env
+    depends_on:
+      - server
+    restart: on-failure
+    mem_limit: 256m
+    ports:
+      - "8080:8080"
+    volumes:
+      - airbyte_workspace:/workspace
+      - airbyte_data:/tmp/airbyte_local
+      - airbyte_storage:/storage
+
+  airbyte-bootloader-k8s:
+    image: rocknfund/airbyte-bootloader-k8s:latest
+    user: "0:0"
+    container_name: airbyte-bootloader-k8s
+    env_file: .env
+    volumes:
+      - airbyte_workspace:/workspace
+      - airbyte_data:/data
+      - airbyte_storage:/local
+    healthcheck:
+      test: [ "CMD", "python3", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8080')" ]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+networks:
+  default:
+    name: airbyte_default
+
+volumes:
+  airbyte_db:
+  airbyte_workspace:
+  airbyte_data:
+  airbyte_storage:
