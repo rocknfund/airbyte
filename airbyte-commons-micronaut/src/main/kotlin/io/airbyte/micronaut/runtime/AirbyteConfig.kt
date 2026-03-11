@@ -1123,11 +1123,10 @@ data class AirbyteWebappConfig(
   val hockeystackApiKey: String = "",
   val launchdarklyKey: String = "",
   val osanoKey: String = "",
-  val posthogApiKey: String = "",
-  val posthogHost: String = "",
   val segmentToken: String = "",
   val sonarApiUrl: String = "",
   val coralAgentsApiUrl: String = "",
+  val fullstoryGuidesOrgId: String = "",
   val url: String = "",
   val zendeskKey: String = "",
 )

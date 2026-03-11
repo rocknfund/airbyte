@@ -12,7 +12,6 @@ import { QueryProvider } from "core/api";
 import { DefaultErrorBoundary } from "core/errors";
 import { AnalyticsProvider } from "core/services/analytics";
 import { HockeyStackAnalytics } from "core/services/analytics/HockeyStackAnalytics";
-import { PostHogAnalytics } from "core/services/analytics/PostHogAnalytics";
 import { ConfirmationModalService } from "core/services/ConfirmationModal";
 import { defaultCloudFeatures, FeatureService } from "core/services/features";
 import { FormChangeTrackerService } from "core/services/FormChangeTracker";
@@ -25,6 +24,7 @@ import { isDevelopment } from "core/utils/isDevelopment";
 import { AirbyteThemeProvider } from "core/utils/useAirbyteTheme";
 
 import { CloudAuthService } from "./services/auth/CloudAuthService";
+import { FullStoryGuidesProvider } from "./services/thirdParty/fullstoryGuides/FullStoryGuidesProvider";
 import { ZendeskProvider } from "./services/thirdParty/zendesk";
 
 const Services: React.FC<React.PropsWithChildren<unknown>> = ({ children }) => (
@@ -36,10 +36,12 @@ const Services: React.FC<React.PropsWithChildren<unknown>> = ({ children }) => (
             <ModalServiceProvider>
               <DrawerContextProvider>
                 <HelmetProvider>
-                  <ZendeskProvider>
-                    {children}
-                    <SupportAgentWidget />
-                  </ZendeskProvider>
+                  <FullStoryGuidesProvider>
+                    <ZendeskProvider>
+                      {children}
+                      <SupportAgentWidget />
+                    </ZendeskProvider>
+                  </FullStoryGuidesProvider>
                 </HelmetProvider>
               </DrawerContextProvider>
             </ModalServiceProvider>
@@ -61,12 +63,10 @@ const App: React.FC = () => {
                 <DefaultErrorBoundary>
                   <AnalyticsProvider>
                     <HockeyStackAnalytics>
-                      <PostHogAnalytics>
-                        <Services>
-                          <DeployPreviewMessage />
-                          <Routing />
-                        </Services>
-                      </PostHogAnalytics>
+                      <Services>
+                        <DeployPreviewMessage />
+                        <Routing />
+                      </Services>
                     </HockeyStackAnalytics>
                   </AnalyticsProvider>
                 </DefaultErrorBoundary>

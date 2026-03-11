@@ -25,12 +25,11 @@ internal class AirbyteWebappConfigDefaultTest {
     assertEquals("", arbyteWebappConfig.hockeystackApiKey)
     assertEquals("", arbyteWebappConfig.launchdarklyKey)
     assertEquals("", arbyteWebappConfig.osanoKey)
-    assertEquals("", arbyteWebappConfig.posthogApiKey)
-    assertEquals("", arbyteWebappConfig.posthogHost)
     assertEquals("", arbyteWebappConfig.segmentToken)
     assertEquals("", arbyteWebappConfig.sonarApiUrl)
     assertEquals("", arbyteWebappConfig.url)
     assertEquals("", arbyteWebappConfig.zendeskKey)
+    assertEquals("", arbyteWebappConfig.fullstoryGuidesOrgId)
   }
 }
 
@@ -49,11 +48,10 @@ internal class AirbyteWebappConfigOverridesTest {
     assertEquals("test-hockeystack-api-key", arbyteWebappConfig.hockeystackApiKey)
     assertEquals("test-launchdarkly-key", arbyteWebappConfig.launchdarklyKey)
     assertEquals("test-osano-key", arbyteWebappConfig.osanoKey)
-    assertEquals("test-posthog-api-key", arbyteWebappConfig.posthogApiKey)
-    assertEquals("test-posthog-host", arbyteWebappConfig.posthogHost)
     assertEquals("test-segment-token", arbyteWebappConfig.segmentToken)
     assertEquals("test-sonar-api-url", arbyteWebappConfig.sonarApiUrl)
     assertEquals("test-url", arbyteWebappConfig.url)
     assertEquals("test-zendesk-key", arbyteWebappConfig.zendeskKey)
+    assertEquals("test-fullstory-guides-org-id", arbyteWebappConfig.fullstoryGuidesOrgId)
   }
 }
